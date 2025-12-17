@@ -220,3 +220,91 @@ repo/
 │   ├── websocket/
 │   └── backups/
 └── README.md
+
+
+
+## 📐 Global Architecture Diagram
+
+```mermaid
+flowchart TD
+    User[User / Client]
+    CF[CloudFront<br/>Global LB]
+    WAF[AWS WAF<br/>Shield Advanced]
+    R53[Route53<br/>Latency + Health]
+    ALB1[ALB<br/>us-east-1]
+    ALB2[ALB<br/>eu-west-1]
+    ECS1[ECS Services]
+    ECS2[ECS Services]
+    DB1[Aurora Primary]
+    DB2[Aurora Read Replica]
+
+    User --> CF
+    CF --> WAF
+    WAF --> R53
+    R53 --> ALB1
+    R53 --> ALB2
+    ALB1 --> ECS1
+    ALB2 --> ECS2
+    ECS1 --> DB1
+    ECS2 --> DB2
+
+
+
+
+✔ Renders directly in GitHub  
+✔ Exec-friendly  
+✔ Engineer-accurate  
+
+---
+
+# ✅ 2️⃣ Split Documentation Cleanly
+
+## 📄 `ARCHITECTURE.md`
+
+```md
+# 🏗️ Platform Architecture
+
+This document describes the **structural design** of the platform.
+
+## Design Principles
+
+- Expect failure
+- Isolate blast radius
+- Prefer managed services
+- Automate everything
+- Minimize steady-state cost
+
+## Load Balancing Model
+
+- Tier 0: CloudFront (Global)
+- Tier 1: Regional ALBs
+- Tier 2: Internal / Service ALBs
+
+Each tier makes **independent routing decisions**.
+
+## Regional Isolation
+
+- Separate VPC per region
+- Separate ECS clusters
+- Separate ALBs
+- Separate databases
+
+No shared fate between regions.
+
+## Data Strategy
+
+- Aurora Multi-AZ primary
+- Cross-region read replica
+- Automated backups via AWS Backup
+
+## Real-Time Traffic
+
+- API Gateway WebSocket
+- Lambda for lifecycle
+- ECS for processing
+
+
+
+
+
+
