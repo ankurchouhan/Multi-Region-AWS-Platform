@@ -187,7 +187,6 @@ Failover is handled automatically via **Route53 health checks**.
 
 ## 📁 Repository Structure
 
-```text
 repo/
 ├── .github/workflows/
 │   ├── terraform.yml
@@ -225,7 +224,6 @@ repo/
 
 ## 📐 Global Architecture Diagram
 
-```mermaid
 flowchart TD
     User[User / Client]
     CF[CloudFront<br/>Global LB]
