@@ -1,39 +1,44 @@
 # 🌍 Production-Hardened Multi-Region AWS Platform (Terraform)
 
-> **Enterprise-grade, ready-to-run AWS platform blueprint**  
+> **Enterprise-grade, ready-to-run AWS platform blueprint**
 > Built for **high availability, global scale, security, disaster recovery, and cost optimization**
 
 ---
 
 ## ✨ Overview
 
-This repository provides a **battle-tested Terraform architecture** for running production workloads on AWS across **multiple regions** with:
+This repository provides a **production-hardened Terraform reference architecture** for running **mission‑critical workloads on AWS** across **multiple regions**.
 
-- Global edge security
-- Zero-downtime deployments
-- Real-time WebSocket support
-- Cost-optimized disaster recovery
-- Automated CI/CD pipelines
-- Compliance-ready backups
+It is designed for teams that **expect failure** and engineer systems that continue to operate through regional outages, traffic spikes, and deployment errors.
 
-Designed for **SaaS, FinTech, Gaming, and mission-critical platforms**.
+**Ideal for:** SaaS platforms, FinTech, Gaming, real‑time systems, and regulated workloads.
 
 ---
 
 ## 🏗️ Architecture Highlights
 
-- **CloudFront** global entry point
-- **AWS WAF + Shield Advanced** for edge security
-- **Multi-Region ECS (Fargate)** compute
-- **Active-Passive DR** (cost optimized)
-- **Route53 latency & health-based routing**
-- **Cross-region backups**
-- **WebSocket real-time architecture**
-- **GitHub Actions CI/CD**
+* **CloudFront** as the global Tier‑0 entry point
+* **AWS WAF + Shield Advanced** for edge security and DDoS protection
+* **Multi‑Region ECS (Fargate)** compute
+* **Active‑Passive Disaster Recovery** (cost‑optimized)
+* **Route53 latency & health‑based routing**
+* **Cross‑region encrypted backups**
+* **WebSocket real‑time architecture**
+* **GitHub Actions CI/CD pipelines**
 
 ---
 
-## 1️⃣ Repository Structure (Ready Terraform Repo)
+## 📊 Availability & Reliability Targets
+
+* **Single ALB (AWS SLA)**: ~99.99% availability (~0.01% max downtime)
+* **Multi‑Region Platform (Observed)**: Effectively zero downtime for most failure scenarios
+* **Published Platform SLO**: **99.95%** (conservative, enterprise‑grade target)
+
+> The published SLO is intentionally lower than the system’s theoretical capability to preserve error budgets and allow safe operational change.
+
+---
+
+## 1️⃣ Repository Structure
 
 ```text
 repo/
@@ -126,8 +131,10 @@ resource "aws_shield_protection" "cloudfront" {
 }
 ```
 
-✔ Protects CloudFront, ALB, Route53
-✔ Includes AWS DDoS Response Team (DRT)
+**Benefits:**
+
+* Protects CloudFront, ALB, and Route53
+* Includes AWS DDoS Response Team (DRT)
 
 ---
 
@@ -147,7 +154,7 @@ resource "aws_secretsmanager_secret_version" "db" {
 }
 ```
 
-Used in ECS task definition:
+Used in ECS task definitions:
 
 ```json
 "secrets": [{
@@ -158,26 +165,28 @@ Used in ECS task definition:
 
 ---
 
-## 5️⃣ CI/CD Pipeline (GitHub Actions)
+## 5️⃣ CI/CD Pipelines (GitHub Actions)
 
-### Terraform Pipeline
+### Terraform Pipeline (Infrastructure)
+
+> **Note:** In production, `apply` should be environment‑protected and not run on every push.
 
 ```yaml
 name: Terraform
-on: [push]
+on: [pull_request]
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
       - run: terraform init
+      - run: terraform validate
       - run: terraform plan
-      - run: terraform apply -auto-approve
 ```
 
-### ECS Deployment Pipeline
+### Application Deployment Pipeline (ECS Blue/Green)
 
 ```yaml
 name: Deploy
@@ -189,6 +198,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: aws-actions/amazon-ecr-login@v2
       - run: docker build -t app .
       - run: docker push $ECR_URI
@@ -199,11 +209,11 @@ jobs:
 
 ## 6️⃣ WebSocket Real‑Time Architecture
 
-### Pattern
+**Pattern:**
 
 * API Gateway (WebSocket)
-* Lambda for connection mgmt
-* ECS for backend processing
+* Lambda for connection management
+* ECS services for backend processing
 
 ```hcl
 resource "aws_apigatewayv2_api" "ws" {
@@ -213,33 +223,28 @@ resource "aws_apigatewayv2_api" "ws" {
 }
 ```
 
-✔ Used for chat, live updates, gaming
-✔ Scales independently from HTTP traffic
+**Use cases:** chat, live updates, gaming backends, event‑driven systems.
 
 ---
 
-## 7️⃣ Cost‑Optimized DR (Active‑Passive)
+## 7️⃣ Cost‑Optimized Disaster Recovery (Active‑Passive)
 
 | Component | Primary | DR          |
 | --------- | ------- | ----------- |
 | ECS       | Running | Desired = 0 |
 | ALB       | Active  | Pre‑created |
 | RDS       | Writer  | Read‑only   |
-| NAT       | Active  | Disabled    |
-
-Terraform example:
+| NAT       | Enabled | Disabled    |
 
 ```hcl
 desired_count = var.is_dr ? 0 : 2
 ```
 
-Failover via Route53 health checks.
+Failover is handled via **Route53 health checks**.
 
 ---
 
 ## 8️⃣ Cross‑Region Backups
-
-### AWS Backup (RDS / EFS)
 
 ```hcl
 resource "aws_backup_plan" "cross_region" {
@@ -257,7 +262,7 @@ resource "aws_backup_plan" "cross_region" {
 
 ✔ Automated
 ✔ Encrypted
-✔ Compliant
+✔ Compliance‑ready
 
 ---
 
@@ -266,110 +271,42 @@ resource "aws_backup_plan" "cross_region" {
 | Area        | Protection                |
 | ----------- | ------------------------- |
 | Edge        | CloudFront + WAF + Shield |
-| Secrets     | Secrets Manager           |
-| Network     | Private subnets           |
-| Deployments | Blue/Green                |
+| Secrets     | AWS Secrets Manager       |
+| Network     | Private subnets only      |
+| Deployments | ECS Blue/Green            |
 | DR          | Multi‑Region              |
 | Backups     | Cross‑Region              |
 
 ---
 
-## 🔟 Deployment Flow (End‑to‑End)
+## 🔟 End‑to‑End Deployment Flow
 
 1. Developer pushes code
 2. CI builds image → ECR
-3. CodeDeploy starts Green ECS service
-4. Canary / Linear traffic shift
-5. WAF + Shield protect traffic
-6. Metrics monitored
-7. Promote or rollback
+3. CodeDeploy launches Green ECS tasks
+4. Canary / linear traffic shift via ALB
+5. Metrics and alarms evaluated
+6. Automatic promote or rollback
 
 ---
 
-## ✅ This Architecture Is Used By
+## ✅ Designed For
 
 * Global SaaS platforms
-* FinTech & banking apps
-* Gaming & real‑time systems
-* Fortune‑500 cloud stacks
-
-## ✅ What’s Included (Complete Checklist)
-🔒 Global Security
-
-AWS WAF on CloudFront (Global)
-
-Shield Advanced (DDoS protection)
-
-Managed AWS WAF rule sets
-
-CloudWatch visibility
-
-🔐 Secrets & Identity
-
-AWS Secrets Manager (per region)
-
-Secure ECS task secret injection
-
-No hardcoded credentials
-
-🌍 Multi-Region Platform
-
-Active-Active (or Active-Passive DR)
-
-Route53 latency + health-based routing
-
-CloudFront global entry point
-
-ECR image replication
-
-🚀 Compute & Deployment
-
-ECS Fargate (Blue/Green)
-
-Canary / Linear traffic shifting
-
-Zero-downtime deployments
-
-Automatic rollback
-
-🔁 WebSocket Real-Time
-
-API Gateway WebSocket
-
-Lambda connection management
-
-ECS backend processing
-
-Independent scaling from HTTP
-
-🧯 Disaster Recovery (Cost-Optimized)
-
-DR region with 0 running compute
-
-Pre-created infrastructure
-
-Fast Route53 failover
-
-Aurora read replica standby
-
-💾 Cross-Region Backups
-
-AWS Backup
-
-Encrypted
-
-Automated restore
-
-Compliance-ready
-
-🔄 CI/CD
-
-Terraform pipeline
-
-Application deployment pipeline
-
-ECR → ECS → CodeDeploy
+* FinTech & banking systems
+* Gaming & real‑time workloads
+* Enterprise & Fortune‑500 cloud platforms
 
 ---
 
+## 🧠 Final Notes
 
+This repository is **not a demo**.
+
+It represents a **production‑ready AWS platform blueprint** that prioritizes **resilience, security, and operational excellence** — while remaining cost‑efficient.
+
+If you expect failure — and still want to ship reliably — this platform is built for you.
+
+---
+
+## 📜 Lice
