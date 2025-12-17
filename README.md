@@ -309,4 +309,6 @@ If you expect failure — and still want to ship reliably — this platform is b
 
 ---
 
-## 📜 Lice
+## 📜 License
+
+MIT License
