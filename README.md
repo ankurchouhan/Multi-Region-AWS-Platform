@@ -183,6 +183,35 @@ Failover is handled automatically via **Route53 health checks**.
 - Canary / linear traffic shifting
 - Automatic rollback
 
+
+
+## 📐 Global Architecture Diagram
+
+```mermaid
+flowchart TD
+    User[User / Client]
+    CF[CloudFront<br/>Global LB]
+    WAF[AWS WAF<br/>Shield Advanced]
+    R53[Route53<br/>Latency + Health]
+    ALB1[ALB<br/>us-east-1]
+    ALB2[ALB<br/>eu-west-1]
+    ECS1[ECS Services]
+    ECS2[ECS Services]
+    DB1[Aurora Primary]
+    DB2[Aurora Read Replica]
+
+    User --> CF
+    CF --> WAF
+    WAF --> R53
+    R53 --> ALB1
+    R53 --> ALB2
+    ALB1 --> ECS1
+    ALB2 --> ECS2
+    ECS1 --> DB1
+    ECS2 --> DB2
+
+
+
 ---
 
 ## 📁 Repository Structure
@@ -221,30 +250,6 @@ repo/
 └── README.md
 
 
-
-## 📐 Global Architecture Diagram
-
-flowchart TD
-    User[User / Client]
-    CF[CloudFront<br/>Global LB]
-    WAF[AWS WAF<br/>Shield Advanced]
-    R53[Route53<br/>Latency + Health]
-    ALB1[ALB<br/>us-east-1]
-    ALB2[ALB<br/>eu-west-1]
-    ECS1[ECS Services]
-    ECS2[ECS Services]
-    DB1[Aurora Primary]
-    DB2[Aurora Read Replica]
-
-    User --> CF
-    CF --> WAF
-    WAF --> R53
-    R53 --> ALB1
-    R53 --> ALB2
-    ALB1 --> ECS1
-    ALB2 --> ECS2
-    ECS1 --> DB1
-    ECS2 --> DB2
 
 
 
